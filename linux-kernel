@@ -3,3 +3,7 @@ linux-2.6.34/Documentation/Changes
 
 Download the gcc:
 http://ftp.gnu.org/gnu/gcc/
+
+sudo apt-get install package=version
+Such as Install autoconf 2.50:
+$ sudo apt-get install autoconf=2.50
