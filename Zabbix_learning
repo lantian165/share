@@ -1,0 +1,49 @@
+1.安装mysql
+  文档地址:
+  https://www.zabbix.com/documentation/2.0/manual/installation/requirements
+  
+  安装版本 zabbix 2.0
+  
+  安装过程中的提示信息:
+  2017-06-05T12:12:08.755005Z 1 [Note] A temporary password is generated for root@localhost: sWC?si>Av1#g
+  If you lose this password, please consult the section How to Reset the Root Password in the MySQL reference manual.
+  
+  mysql -u root -p
+  set password for root@localhost = password('root'); 
+  
+2.安装apache
+  mac 自带apache
+  sudo apachectl start (80端口监听) 
+  
+  http.conf:
+  DocumentRoot "/Users/zcy/Apache2/Sites"
+  <Directory "/Users/zcy/Apache2/Sites">
+  
+  Options Indexes FollowSymLinks Multiviews
+  
+  LoadModule php5_module libexec/apache2/libphp5.so
+  
+  (namei -m /Users/zcy/Apache2/Sites/index.html.en)
+  
+  
+3.下载zabbix 2.0.21:
+https://nchc.dl.sourceforge.net/project/zabbix/ZABBIX%20Latest%20Stable/3.2.6/zabbix-3.2.6.tar.gz
+
+/usr/local/sbin/zabbix_server
+
+web url: 127.0.0.1/zabbix
+
+4.php -i | grep "php.ini" 看加载的php.ini是哪个
+/etc/php.ini
+
+
+Template的几大要素：
+比较重要的两个：
+
+Application： 简单的说Application就是分组，对服务端监控项目的分组。比如上面用到的Linux系统监控Template中就有CPU,Memory等分 组，分别对应一系列针对CPU和内存的监控项。将这些彼此有密切联系的监控项放一个分组（即同一个Application）中，看起来十分直观。
+
+Items：就是Application分组中具体的一个个监控项。还是一上文Linux 系统监控Template的CPU Application为例，里面包含了CPU system time、CPU idle time、CPU interrupt time等等多项CPU监控指标。Items最重要的一个参数是key。zabbix客户端就是根据这个key去寻找对应的shell脚本，运行并获取对 应的值，返回页面展示给用户。正如前面所说，一个Application对应1到多个Items。一个Application就是一个Items族群。另外Items必须放到某一个Application中去，否则在监控页面是看不到这个Items对应的监控结果的。
+
+5， 关联（Link to）与被关联（Linked）：前面说过，新建一个监控对象Host时，可以关联一个Template，这样这台机器对应这个Template的监控信 息就会展现在监控结果页面中。此外，zabbix还提供了Template关联Template。假设Template A 关联了Template B。那么关联了A的主机同样也就关联了B。在这个主机的监控页面上，就会有A,B两个监控结果同时展现出来。这极大了增加了监控配置的灵活性和多样性。
+
+上面简单总结了Template的用法、构成。以及Template中间的关联。zabbix给了用户极大的自由去定制自己的监控计划，同时也使得这件事变得有点杂乱无章，没有头绪。以后继续总结其他功能。

@@ -1,0 +1,19 @@
+可执行文件路:
+/usr/local/bin/redis-server
+
+配置文件路径:
+/usr/local/etc/redis.conf
+
+服务启停:
+redis-server /usr/local/etc/redis.conf
+
+日志文件 及 进程文件 存放路径:
+/usr/loca/redis/
+log-redis.log redis.pid
+
+Redis CONFIG 命令格式:
+redis 127.0.0.1:6379> CONFIG GET CONFIG_SETTING_NAME
+
+实例:
+redis 127.0.0.1:6379> CONFIG GET loglevel
+redis 127.0.0.1:6379> CONFIG GET *

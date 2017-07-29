@@ -1,0 +1,95 @@
+让Mac OS X系统启动时执行脚本的方法
+现在的Mac OS X则使用launchd来管理，它的启动服务称为Launch Daemon / Agents。利用Launch Daemon / Agent
+
+•Launch Daemon和Launch Agent的区别 
+
+Launch Daemon和Launch Agent 是同一种东西在不同应用范围的名称。Launch Daemon是系统级别的服务，称为daemon，Launch Agent是用户级别的服务，称为agent，前者在开机时会加载，后者在用户登录后才会加载。所以我们采用Launch Daemon的方式运行脚本。 
+
+•从AssetExolorer导出脚本文件 
+
+选择扫描→孤立工作站审计→通过脚本扫描工作站→Mac导出脚本文件ae_scan_mac.sh，并修改脚本文件中的hostName="服务器IP地址或域名地址"，并检查portNo一项是否正确。 
+
+•创建plist配置文件 
+
+Launchd进程需要读取一个xml格式的plist配置文件，创建该文件并将其放置在/System/Library/LaunchDaemons/ 或者/Library/LaunchDaemons/目录下。可在Windows下预先创建该文件，需要使用支持Unix格式的文本编辑器（比如UltraEdit）创建该文件。 
+
+其中plist文件格式及每个字段的含义： 
+ae_scan_mac.plist文件范例： 
+
+XML/HTML Code复制内容到剪贴板
+<?xml version="1.0" encoding="UTF-8"?>    
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"     
+    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">    
+<plist version="1.0">    
+<dict>    
+    <key>Label</key>                   该项服务的名称（必选）
+        <string>com.manageengine.ae_scan_mac</string>    
+    <key>Program</key>                 指定可执行文件的路径和名称(必选)
+    <string>ae_scan_mac.sh</string>    
+    <key>RunAtLoad</key>               设置为true即可实现开机运行脚本文件(可选)
+         <true/>    
+    <key>WorkingDirectory</key>        运行可执行文件之前，指定当前工作目录的路径(可选)
+        <string>/Library/LaunchDaemons/</string>    
+    <key>KeepAlive</key>               用来控制是否让可执行文件持续运行(可选)
+        <false/>     
+    <key>StartCalendarInterval</key>   设置定时执行可执行程序(可选) 
+    <dict>           
+        <key>Hour</key>     
+        <integer>11</integer>     
+        <key>Minute</key>    
+        <integer>0</integer>     
+    </dict>     
+</dict>    
+</plist>  
+
+其中的关键字解释： 
+
+1）Label（必选） 
+该项服务的名称。 
+2）Program（ProgramArgument是必选的，在没有ProgramArgument的情况下，必须要包含Program关键字） 
+指定可执行文件的路径和名称。 
+3）RunAtLoad（可选） 
+标识launchd在加载完该项服务之后立即启动路径指定的可执行文件。默认值为false。设置为true即可实现开机运行脚本文件。 
+4）WorkingDirectory（可选） 
+运行可执行文件之前，指定当前工作目录的路径。 
+5）KeepAlive（可选） 
+这个关键字可以用来控制是否让可执行文件持续运行，默认值为false，也就是说满足具体条件之后才启动。当设置值为ture时，表明无条件的开启可执行文件，并使之保持在整个系统运行周期内。 
+6）StartCalendarInterval（可选） 
+该关键字可以用来设置定时执行可执行程序，可使用Month、Day、Hour、Minute等子关键字，它可以指定脚本在多少月、天、小时、分钟、星期几等时间上执行，若缺少某个关键字则表示任意该时间点，类似于Unix的Crontab计划任务的设置方式，比如在该例子中设置为每天11点钟执行脚本文件。 
+
+所有key关键字详细使用说明可以在Mac OS X终端下使用命令man launchd.plist查询。 
+
+•在客户机部署配置文件和脚本文件 
+
+1） 首先为Mac OS X系统的当前的用户设置一个密码，在系统偏好设置→账户中设置。 
+然后，可通过共享等方式将脚本文件ae_scan_mac.sh和plist文件ae_scan_mac.plist拷贝到本地硬盘的一个临时目录中，然后打开实用工具→终端，使用以下命令： 
+sudo mv ae_scan_mac.* /Library/LaunchDaemons 
+将这两个文件移动到/Library/LaunchDaemons/目录下。 
+
+2） 修改文件权限： 
+sudo chown root:wheel /Library/LaunchDaemons/ae_scan_mac.* 
+sudo chmod a+x /Library/LaunchDaemons/ae_scan_mac.sh 
+sudo chmod 644 /Library/LaunchDaemons/ae_scan_mac.plist
+
+3)plist文件的编辑和检查 
+可使用命令sudo vim ae_scan_mac.plist对文件进行修改。 
+检查plist文件的语法： 
+plutil ae_scan_mac.plist 
+若返回OK则表示文件语法正确。 
+
+4） 启动服务并载入plsit文件： 
+sudo launchctl load /Library/LaunchDaemons/ae_scan_mac.plist 
+或者重启Mac电脑也可以。 
+要留意的是，每次修改完plist文件后必须使用以下命令重新载入plist文件又或者重启电脑，plist的配置才会生效。 
+sudo launchctl unload /Library/LaunchDaemons/ae_scan_mac.plist 
+sudo launchctl load /Library/LaunchDaemons/ae_scan_mac.plist 
+
+接着，检查服务的运行状态： 
+sudo launchctl list
+
+5） 最后待脚本运行后，就能在AssetExplorer服务器上看到这台客户机的信息了，之后客户机就会自动按照plist文件设置的时间或者重启机器后将机器信息上传到服务器。
+两个文件的部署有几个地方需要注意的：
+1）文件的权限必须正确，两个文件所有者必须为root，脚本文件必须有执行权限。
+2）plist文件的语法必须正确，要留意配置中的程序工作目录和运行参数不要错。可执行：sudo launchctl start /Library/LaunchDaemons/ae_scan_mac.plist
+强制运行服务，或者直接运行一下脚本程序，测试一下脚本文件的运行是否正常。
+3）每次plist文件修改后必须执行launchctl unload/load卸载并重新载入plist文件，才能使新的配置文件马上生效。

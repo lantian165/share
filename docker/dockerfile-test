@@ -1,0 +1,9 @@
+FROM docker.io/redis:latest
+
+MAINTAINER yichen
+
+COPY ./redis.conf /data/
+
+CMD ["-l", " /usr/local/bin"]
+
+ENTRYPOINT ["/usr/bin/ls"]

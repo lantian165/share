@@ -1,0 +1,36 @@
+1.git init
+2.git add file1 fiel2 ...
+3.git commit -m "messages"
+4.git status
+5.git log
+
+# HEAD is a pointer, point to the current version of file
+# 回退版本:
+6.git reset --hard HEAD^
+# HEAD^ HEAD^^ ... HEAD~100
+# You can change HEAD to point to diff ID to change history version
+7.get reflog
+
+8. git add (把工作区的内容-->暂存区stage)
+9. git commit (把暂存区stage-->master分区,而不是直接提交工作区-->版本库master分支)
+
+逻辑架构整理
+工作区->暂存区->版本库->远程库
+
+10:撤销修改
+10-1: 修改只在工作区,未add到暂存区 
+      git checkout -- file
+10-2: 修改已经add到暂存区
+      git reset HEAD file
+      git checkout -- file
+10-3: 修改已经commit到版本库
+      git reset id (前提是没有推送到远程库)
+
+11: 删除文件
+11-1:工作区已删除,从版本库中也删除 
+     git rm file
+     git commit -m "remove file"
+11-2:工作区误删除,从版本库恢复到工作区
+     git checkout -- file
+
+#http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/0013744142037508cf42e51debf49668810645e02887691000

@@ -1,0 +1,6 @@
+https://jenkins.io/doc/
+
+Run jenkins:
+java -jar jenkins.war
+
+Browse to http://localhost:8080

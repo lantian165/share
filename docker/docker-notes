@@ -1,0 +1,124 @@
+  719  docker run -it --name redis-master redis /bin/bash
+Detath: ctrl+q+p && ctrl+q 
+       docker attach redis-master
+
+  720  docker run -it --name redis-slave1 --link redis-master:master redis /bin/bash
+  746  docker run -it --name redis-slave2 --link redis-master:master redis /bin/bash
+
+Start APP1 and mount a volume from host with "-v":
+  767  docker run -it --name APP1 --link redis-master:db -v ~/Projects/Django/App1:/usr/src/app django /bin/bash
+
+  781  docker run -it --name APP2 --link redis-master:db -v ~/Projects/Django/App2:/usr/src/app django /bin/bash
+
+Start HAProxy and specify local port mapping: 6301
+  792  docker run -it --name HAProxy --link APP1:APP1 --link APP2:APP2 -p 6301:6301 -v ~/Projects/HAProxy:/tmp haproxy /bin/bash
+
+  800  history |grep "docker run"
+
+Get Return low-level information on a container, image or task
+  docker inspect bc8e |more 
+
+
+Run redis as a startup service:
+  docker run --name redis-test -d redis 
+  docker inspect redis-test |grep IPA
+  docker run -it --name db-cli --link redis-test:redis-db --rm redis redis-cli -h redis-test -p 6379
+  
+  install redis in local host:
+  redis-cli -h 172.17.0.8 -p 6379
+
+Maunal startup redis in the container:
+  redis-server 
+  Or: redis-server /usr/local/bin/redis.conf
+
+Stop redis-server:
+  kill redis-servero-pid
+  Or: redis-cli -h 172.17.0.2 -p 6379 shutdown
+
+Using: redis-master, redis-slave1, redis-slave2
+
+1.specify our own redis.conf, when running redis-server /usr/local/bin/redis.conf, 
+report error info: cann't mkdir /var/log/redis
+Resolve: create the dir manual.
+
+2.After startup redis-server, cann't telnet to port 6379 from remote host.
+Resolve: comment the bind to allow connection from remote host, 
+         redis-cli -h 127.0.0.1 -p 6379, Run: CONFIG SET protected-mode no 
+         Use: CONFIG REWRITE to make this change PERMANENT.
+         Use: CONFGI GET protected-mode to get the value.
+Now the redis-master allow access from remote hosts.
+
+3.Edit the redis.conf of redis-slave, 
+  Set Property: slaveof master 6379
+  Format: slaveof <masterip> <masterport> 
+  (masterip is the mapping name in /etc/hosts file)
+
+Configure Django: APP1 APP2
+Issue:  /usr/src/app# ls , Returns: cannot open directory : Permission denied
+This problem is cause by selinux
+
+Resolv: 
+Way 1. Start container with --privileged=true
+Way 2. sudo setenforce 0
+Way 3. chcon -Rt svirt_sandbox_file_t /home/yichen/Projects/Django
+
+Add redis package to Python:
+# pip install redis
+Check: 
+# python
+# import redis
+# pirnt(redis.__file__)
+(prints the python localcation line here)
+
+
+Configure App1:
+After edit Views.py and urls.py
+Run:
+# python manage.py makemigrations
+# python manage.py migrate
+''' Don't need to run syncdb because new version of django remove this command, 
+'''  its funtion done when running command migrate
+# python manage.py createsuperuser ( password is the same as mac book )
+
+Run the Django to start APP1:
+# python manage.py runserver 0.0.0.0:8001
+
+Configure HAProxy: haproxy.cfg
+Run HAProxy:
+haproxy -f haproxy.cfg
+
+When visit from local host with: http://172.17.0.7:6301/helloworld
+Return Error Message:
+DisallowedHost at /helloworld
+Invalid HTTP_HOST header: '10.120.0.77:6301'. You may need to add '10.120.0.77' to ALLOWED_HOSTS.
+
+Resolv, Modify Django's setting.py:
+# Add the IP to ALLOWED_HOSTS = [] of setting.py
+# vi setting.py
+change from: ALLOWED_HOSTS = [] to: ALLOWED_HOSTS = ['*']
+
+Until Now, all configuration is OK!!!
+NOW, NOTE THE RUNNING COMMAND:
+
+Run Django Start App1:
+# cd /home/yichen/Projects/Django/App1/dockerweb/redisweb/redisweb
+# python manage.py runserver 0.0.0.0:8001
+
+Run Django Start App2:
+# cd /home/yichen/Projects/Django/App1/dockerweb/redisweb/redisweb
+# python manage.py runserver 0.0.0.0:8002
+
+Run HAProxy:
+# cd /usr/local/sbin
+# haproxy -f haproxy.cfg
+
+Time zone is not CST:
+
+# docker export / import:
+sudo docker ps -a
+sudo docker export 7691a814370e > ubuntu.tar
+cat ubuntu.tar | sudo docker import - test/ubuntu:v1.0
+
+# visudo -f /etc/sudoers
+Add the line to the end of /etc/sudoers:
+yichen ALL=(ALL) NOPASSWD: /usr/bin/docker,/usr/bin/systemctl

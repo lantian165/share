@@ -1,0 +1,419 @@
+﻿./configure --enable-server --enable-agent --with-mysql --enable-ipv6 --with-net-snmp --with-libcurl
+
+https://www.zabbix.com/documentation/2.0/manual/installation/install
+
+/usr/local/etc/zabbix_proxy.conf
+
+
+shell> zabbix_server
+
+
+shell> zabbix_agentd
+
+shell> zabbix_proxy
+
+
+从最新版本的Linux系统开始，默认的是 Mariadb而不是MySQL！
+使用系统自带的repos安装很简单：
+yum install mariadb mariadb-server
+
+systemctl start mariadb ==> 启动mariadb
+systemctl enable mariadb ==> 开机自启动
+mysql_secure_installation ==> 设置 root密码等相关
+mysql -uroot -p123456 ==> 测试登录！
+
+[client]
+port                           = 3306
+socket                         = /data/mysql/mysql.sock
+
+[mysqld]
+port                           = 3306
+socket                         = /data/mysql/mysql.sock
+basedir                        = /data/mysql
+datadir                        = /data/mysql/data
+tmpdir                         = /data/mysql/data
+
+### skip-character-set-client-handshake
+log_bin_trust_function_creators = 1
+innodb_print_all_deadlocks      = 1
+skip-external-locking
+skip-name-resolve
+autocommit                     = 1
+innodb_thread_concurrency      = 8
+innodb_defragment              = 1
+
+character_set_server           = utf8
+init_connect                   = 'SET NAMES utf8'
+init_connect                   = 'SET collation_connection = utf8_general_ci'
+
+# 从库关闭binlog
+log-bin                        = binlog
+binlog_format                  = ROW
+max_binlog_size                = 256M
+expire_logs_days               = 1
+binlog_cache_size              = 64K
+
+# 
+server-id                      = 1001
+innodb_data_home_dir           = /data/mysql/data
+innodb_data_file_path          = ibdata1:100M:autoextend
+innodb_log_group_home_dir      = /data/mysql/data
+innodb_log_file_size           = 128M
+innodb_log_buffer_size         = 8M
+
+# 重要参数
+innodb_buffer_pool_size        = 12288M  #51200M  #10240M
+innodb_flush_method            = O_DIRECT
+innodb_file_per_table          = 1
+innodb_file_format             = barracuda
+innodb_flush_log_at_trx_commit = 0
+
+# CACHES AND LIMITS #
+query-cache-type               = 0
+query-cache-size               = 0
+open_files_limit               = 65535
+innodb_open_files              = 8192
+table_open_cache               = 8192
+thread_cache_size              = 200
+max_connections                = 16384
+max_user_connections           = 10000
+extra_max_connections          = 100
+max_connect_errors             = 5000
+
+# REPLICATION #
+read_only                      = 0        ### 从库设置为1
+event_scheduler                = 1        ### 从库设置为0
+slave-net-timeout              = 60
+slave-skip-errors              = 1062
+slave_parallel_threads         = 4
+
+wait_timeout                   = 3600
+interactive_timeout            = 3600
+lock_wait_timeout              = 600
+innodb_lock_wait_timeout       = 600
+concurrent_insert              = 2
+key_buffer_size                = 256M
+max_allowed_packet             = 64M
+
+sort_buffer_size               = 2M
+read_buffer_size               = 2M
+join_buffer_size               = 2M
+read_rnd_buffer_size           = 2M
+myisam_sort_buffer_size        = 128M
+
+# LOGGING #
+log-error                      = db-error.log
+slow_query_log                 = 1
+long_query_time                = 2
+#log-queries-not-using-indexes = 1
+slow_query_log_file            = db-slow.log
+log_slow_verbosity             = query_plan
+
+tmp_table_size                 = 96M
+max_heap_table_size            = 96M
+
+bulk_insert_buffer_size        = 64M
+group_concat_max_len           = 102400
+
+[mysqldump]
+quick
+max_allowed_packet             = 64M
+
+
+MariaDB.repo
+
+# MariaDB 10.0 CentOS repository list - created 2017-06-10 15:47 UTC
+# http://downloads.mariadb.org/mariadb/repositories/
+[mariadb]
+name = MariaDB
+#baseurl = http://yum.mariadb.org/10.0/centos7-amd64
+baseurl = https://mirrors.tuna.tsinghua.edu.cn/mariadb/mariadb-10.0.31/yum/centos7-amd64
+gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+gpgcheck=1
+
+sudo yum install MariaDB-server MariaDB-client
+
+https://mirrors.tuna.tsinghua.edu.cn/mariadb/mariadb-10.0.31/yum/centos7-amd64
+
+问题解决方案：卸载掉系统自己安装的MYSQL, MARIADB
+配置/etc/re*.d/MariaDB.repo
+yum install mariadb-client mariadb-server
+
+service mysql start 命令启动MariaDB 服务
+mysql_secure_installation 配置MariaDB
+
+# mysql -uroot
+mysql> create database zabbix character set utf8 collate utf8_bin;
+mysql> grant all privileges on zabbix.* to zabbix@localhost identified by 'zabbix';
+mysql> exit
+
+# cd /usr/share/doc/zabbix-server-mysql-2.0.4/create
+# mysql -uroot zabbix < schema.sql
+# mysql -uroot zabbix < images.sql
+# mysql -uroot zabbix < data.sql
+
+# vi /etc/zabbix/zabbix_server.conf
+DBHost=localhost
+DBName=zabbix
+DBUser=zabbix
+DBPassword=zabbix
+
+# service zabbix-server  start
+
+
+md5 check
+b6f2c05e899d5e1b598ccd2268f8dce8
+b6f2c05e899d5e1b598ccd2268f8dce8
+
+./configure --enable-server --enable-agent --with-mysql --enable-ipv6 --with-net-snmp --with-libcurl
+
+
+
+
+
+
+
+
+
+
+
+
+1、安装组件
+
+yum install make mysql-server httpd php mysql-devel gcc net-snmp-devel curl-devel perl-DBI php-gd php-mysql php-bcmath php-mbstring php-xml -y
+
+useradd zabbix
+
+2、启动mysql
+service mysqld start
+mysqladmin –u root password root 设定mysql数据库管理员的账号密码
+mysql –u root –p
+
+输入密码root
+3、创建zabbix数据库
+Mysql> create database zabbix character set utf8;
+Mysql> grant all on zabbix.* TO zabbix@'localhost' identified by 'zabbixpass'; 授权本机通过账号zabbix密码zabbixpass访问数据库的所有权限
+Mysql> flush privileges;
+4、导入数据库sql
+zabbix-2.0.6/database/mysql
+mysql -h localhost -uroot -proot zabbix <schema.sql 这里应该用zabbix和zabbixpass来导入sql文件，由于root是管理员账号，所以本地可以直接用来连接
+
+mysql -h localhost -uroot -proot zabbix <images.sql 这里应该用zabbix和zabbixpass来导入sql文件
+mysql -h localhost -uroot -proot zabbix <data.sql 这里应该用zabbix和zabbixpass来导入sql文件
+5、调整当前时间（这个时间对的话就不要调整了）
+date -s "2013-04-26 20:48:55" 
+6、编译安装
+./configure --with-mysql --with-net-snmp --with-libcurl --enable-server --enable-agent --enable-proxy --prefix=/usr/local/zabbix
+make && make install
+7、添加端口
+vim /etc/services
+
+zabbix-agent 10050/tcp # Zabbix Agent
+zabbix-agent 10050/udp # Zabbix Agent
+zabbix-trapper 10051/tcp # Zabbix Trapper
+zabbix-trapper 10051/udp # Zabbix Trapper
+
+8、修改配置文件
+修改/etc/httpd/conf/httpd.conf
+DirectoryIndex index.html index.html.var index.php
+修改/usr/local/zabbix/etc/zabbix_server.conf参数：
+DBName=zabbix
+DBUser=zabbix 连接数据库的账号,与Mysql授权账号对应
+DBPassword=zabbixpass 连接数据库的密码，与Mysql授权账号的密码对应
+
+
+重启httpd
+/etc/init.d/httpd restart
+
+11、配置php文件
+# cd zabbix-2.0.6
+# cd frontends/
+# cp -rf php /var/www/html/
+# cd /var/www/html
+# mv php zabbix
+# chown -R zabbix:zabbix zabbix
+
+登录http://ip/zabbix
+
+其中配置DB时mysql的账号和密码都是root，
+CentOS <wbr>6.1下安装zabbix-2.0.6
+
+最后这步显示fail，后来按照提示将zabbix.conf.php的文件下载了cp 到/var/www/html/conf/
+CentOS <wbr>6.1下安装zabbix-2.0.6
+最后显示
+Configuration file
+"/var/www/html/zabbix/conf/zabbix.conf.php"
+created: OK
+
+安装成功后，初始登录账号admin，密码zabbix
+
+进入界面，发现一直报错
+CentOS <wbr>6.1下安装zabbix-2.0.6
+
+vim /etc/selinux/conf,将selinux改为disabled,结果发现还不行，后来查看/tmp/zabbix_server.log，发现报如下错误：
+5763:20130426:211659.749 Database is down. Reconnecting in 10 seconds.
+5763:20130426:211709.751 [Z3001] connection to database 'zabbix' failed: [1045] Access
+denied for user 'zabbix'@'localhost' (using password: YES)
+经过排查，发现（我在安装zabbix到第4步配置数据库时输入账号和密码都输入zabbix时会提示连接不上，后来自学了Mysql才知道应该用数据库授权的账号密码来连接，改成下述就OK了）
+/usr/local/zabbix/etc/zabbix_server.conf参数：
+DBName=zabbix
+DBUser=zabbix 改为 DBUser=zabbix
+DBPassword=zabbix 改为 DBPassword=zabbixpass，这里按理说应该是连接数据库的账号密码，应该用授权的账号(zabbix)和密码(zabbixpass)来连接。
+OK，大功告成。
+CentOS <wbr>6.1下安装zabbix-2.0.6
+
+
+
+至于zabbix agent的安装就很简单了，将源码安装包拷到客户机上，解压后
+groupadd zabbix
+useradd zabbix -g zabbix
+
+1、编译安装
+./configure --with-net-snmp --with-libcurl --enable-agent --enable-proxy --prefix=/usr/local/zabbix
+make && make install
+2、添加端口
+vim /etc/services
+zabbix-agent 10050/tcp # Zabbix Agent
+zabbix-agent 10050/udp # Zabbix Agent
+zabbix-trapper 10051/tcp # Zabbix Trapper
+zabbix-trapper 10051/udp # Zabbix Trapper
+
+3、修改配置文件
+cp misc/init.d/fedora/core5/zabbix_agentd /etc/init.d/
+chown -R zabbix:zabbix /etc/init.d/zabbix_*
+chmod 700 /etc/init.d/zabbix_*
+su - zabbix
+vim /etc/init.d/zabbix_agentd
+修改
+ZABBIX_BIN="/usr/local/sbin/zabbix_agentd"
+为
+ZABBIX_BIN="/usr/local/zabbix/sbin/zabbix_agentd"
+
+4、启动服务并设置开机启动
+/etc/init.d/zabbix_agentd start
+chkconfig zabbix_agentd on
+
+来自于：http://blog.csdn.net/yincg/article/details/8687116
+
+ 
+ # mysql -uroot
+mysql> create database zabbix character set utf8 collate utf8_bin;
+mysql> grant all privileges on zabbix.* to zabbix@localhost identified by 'zabbix';
+mysql> exit
+
+# cd /usr/share/doc/zabbix-server-mysql-2.0.4/create
+# mysql -uroot zabbix < schema.sql
+# mysql -uroot zabbix < images.sql
+# mysql -uroot zabbix < data.sql
+
+MariaDB [(none)]> grant all on zabbix.* to 'zabbix'@'127.0.0.1' identified by 'zabbix' with grant option;            ##允许账户能从本机连接至数据库zabbix
+MariaDB [(none)]> flush privileges;
+
+# vi /etc/zabbix/zabbix_server.conf
+DBHost=localhost
+DBName=zabbix
+DBUser=zabbix
+DBPassword=zabbix
+
+# service zabbix-server start
+
+//下面这一部分没有配置的话，会导致web打不开php的配置页面
+vi /usr/local/zabbix/etc/zabbix_agentd.conf
+Include=/usr/local/zabbix/etc/zabbix_agentd.conf.d/
+UnsafeUserParameters=1 #启用自定义key
+
+/etc/httpd/conf.d/zabbix.conf.  (Apache)
+
+php_value max_execution_time 300
+php_value memory_limit 128M
+php_value post_max_size 16M
+php_value upload_max_filesize 2M
+php_value max_input_time 300
+# php_value date.timezone Europe/Riga
+
+# service httpd restart
+
+
+web页面配置完成， 但报错：
+mysql_connect() Headers and client library minor version mismatch.
+原因：
+Client API library version => 10.0.31 MariaDB
+Client API header version => 5.5.50 MariaDB
+解决方法：
+（http://blog.csdn.net/ausboyue/article/details/52790222）
+yum remove php-mysql  
+yum install php-mysqlnd  
+
+默认登陆账号：
+This is the Zabbix “Welcome” screen. 
+Enter the user name Admin with password zabbix to log in as a Zabbix superuser.
+
+Zabbix监控服务端已经配置完成，现在要使用Zabbix对Linux主机进行监控。
+具体操作：
+以下操作在被监控的Linux主机进行，这里以CentOS 6.x系统为例。
+一、配置防火墙，开启10050、10051的TCP和UDP端口
+vi /etc/sysconfig/iptables #编辑防火墙配置文件
+-A INPUT -s 192.168.21.127 -m state --state NEW -m tcp -p tcp --dport 10050:10051 -j ACCEPT
+-A INPUT -s 192.168.21.127 -m state --state NEW -m udp -p udp --dport 10050:10051 -j ACCEPT
+:wq! #保存退出
+service iptables restart #重启防火墙使配置生效
+说明：192.168.21.127是Zabbix服务端的IP地址，表示端口只对此IP开放，如果要对所有IP开放，规则如下：
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 10050:10051 -j ACCEPT
+-A INPUT -m state --state NEW -m udp -p udp --dport 10050:10051 -j ACCEPT
+二、关闭SELINUX
+vi /etc/selinux/config
+#SELINUX=enforcing #注释掉
+#SELINUXTYPE=targeted #注释掉
+SELINUX=disabled #增加
+:wq! #保存退出
+setenforce 0 #使配置立即生效
+
+Agent 日志所报问题处理:
+﻿active check configuration update from [yichen-centos:10051] started to fail 
+(cannot connect to [[yichen-centos]:10051]: [4] Interrupted system call)
+
+整个环境用到的机器:
+zabbix_server ip: 10.120.0.118
+windows agent ip: 10.120.0.104
+mac agent ip: 10.120.0.93
+
+配置文件总结:
+
+﻿[root@yichen-centos etc]# egrep -v "(^#|^$)" zabbix_server.conf
+LogFile=/tmp/zabbix_server.log  # 日志路径 
+DBHost=127.0.0.1                # mysql数据库服务器
+DBName=zabbix                   # db name
+DBUser=zabbix                   # db user
+DBPassword=zabbix               # db password
+
+[root@yichen-centos etc]# egrep -v "(^#|^$)" zabbix_agentd.conf
+LogFile=/tmp/zabbix_agentd.log   # 日志路径 
+Server=10.120.0.118              # 允许连接进来的zabbix server,可用逗号分隔开多个IP地址 (server本机也不要用127.0.0.1)
+ServerActive=10.120.0.118:10051  # 允许主动连接的zabbix server:port, 可以是逗号分隔开的多个组合(server本机也不要用127.0.0.1)
+Hostname=yichen-centos           # agent的主机名, 在zabbix server里的host中显示的名字要与这个一致
+RefreshActiveChecks=60           # 信息获取时间间隔
+Include=/usr/local/etc/zabbix_agentd.conf.d/ # 包含自配置文件，不同的配置写到不同的文件中，然后include
+UnsafeUserParameters=1           # 允许所有字符的参数传递给用户定义的参数。
+ListenIP                         # ( 可以注释掉,或者填写物理IP ) 这一行的值不能为127.0.0.1, 
+                                 # 否则会导致agentd服务不能成功连接到server的10051端口
+[root@yichen-centos etc]# 
+
+安装phpMyAdmin:
+phpmyadmin版本要选择: 4.4.15.8, 
+phpmyadmin版本如果选高了, 会提示os的php版本是5.4太低
+如果版本选低了, 会导致phpmyadmin配置好了之后,登陆无法成功,原因无法查询
+
+
+如何配置一个 Web Monitor  Scenario
+Web Scenario必须链接到application，因此创建Web Scenario之前，需要创建一个application
+
+添加 WEB Monitorings
+
+Configuration->hosts->Applications->Create Application
+Configuration->web->Create Scenario 创建一个Scenario
+(注：必须选择host后才能创建scenario，zabbix的所有items都必须创建在hosts上)
+
+参考网页:http://magic3.blog.51cto.com/1146917/1424751/
+
+mysql 日志 路径 centos:
+/var/lib/mysql
