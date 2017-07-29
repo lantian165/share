@@ -123,10 +123,10 @@ cat ubuntu.tar | sudo docker import - test/ubuntu:v1.0
 Add the line to the end of /etc/sudoers:
 yichen ALL=(ALL) NOPASSWD: /usr/bin/docker,/usr/bin/systemctl
 
-# Add aliyun docker images to local:
+# Add 163.com docker images to local:
 sudo tee /etc/docker/daemon.json <<-'EOF'
 {
-  "registry-mirrors": ["https://yovewqcv.mirror.aliyuncs.com"]
+  "registry-mirrors": ["http://hub-mirror.c.163.com"]
 }
 EOF
 
@@ -136,13 +136,7 @@ sudo systemctl restart docker
 # systemctl Start docker-storage-setup.service Failed
 systemctl stop docker
 
-vi /etc/sysconfig/docker-storage-setup
-Add:
-STORAGE_DRIVER="devicemapper"
-GROWPART="true"
-
-Install command: /usr/bin/growpart with:
-yum install cloud-utils-growpart
+Not valid method found!
 
 systemctl start docker
 #
