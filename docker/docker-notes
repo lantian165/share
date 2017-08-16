@@ -140,3 +140,11 @@ Not valid method found!
 
 systemctl start docker
 #
+
+# 2017-08-15 systemctl start docker reports: layer does not exist
+# systemctl start docker
+# journalctl -f -u docker
+# dockerd
+Use www.bing.com to search, visit: https://github.com/moby/moby/issues/30115
+https://github.com/moby/moby/issues/20267
+# dockerd -D (Use debug mod to start docker)
