@@ -30,3 +30,5 @@ $ (gdb) p str
 # quit the gdb
 $ (gdb) q
 
+# change var value when running
+$ (gdb) print var=value
