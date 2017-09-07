@@ -1,0 +1,6 @@
+t: t.o
+	gcc -o t -g t.o
+t.o : t.c
+	gcc -c -g t.c
+clean:
+	rm -f t t.o
