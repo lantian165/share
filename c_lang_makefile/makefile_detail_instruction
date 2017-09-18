@@ -1,0 +1,226 @@
+多文件，多头文件时gcc与makefile的编写经验 
+
+
+
+经常在一个项目中包含多个.c源文件，而且一个.c源文件包含了一堆的头文件，这种情况下如何编写makefile，使得能成功编译整个项目？本博文对这些问题提出自己浅析的理解。涉及到对gcc命令使用与编译流程理解及多文件时makefile的编写。
+
+=================================================================================
+
+很奇怪的是，在《跟我一起学Makefile-陈皓》的文档中，第五部分第八章，有讲到自动生成依赖性的问题。从字面意思，我理解为在.c源文件中每添加一个自己的头文件都需要在makefile的对应目标中添加对该头文件的依赖。
+
+添加对此头文件的依赖是为了确保有此文件？但是在gcc编译时，如果寻找不到该头文件，是会停止编译且报错的。
+
+然后我就直接理解为了：添加头文件依赖是为了gcc编译时让此头文件也作为输入文件
+
+例如：
+
+[objc] view plain copy
+
+    <abc.c>:  
+    include "abc.h"  
+    include <stdio.h>  
+      
+    void main()  
+    {  
+        printf("helloworld");  
+    }  
+
+编译成.o文件时，应该为：
+
+[objc] view plain copy
+
+    gcc -c abc.c abc.h //错误示范  
+
+结果却是相当于执行了：
+
+[objc] view plain copy
+
+    gcc -c abc.c  
+    gcc -c abc.h  
+
+是因为我的gcc版本较新？总之，折腾了很久后，我就是发现，头文件没必要写到依赖中，而gcc也不需要直接把此头文件作为输入，但是若头文件不在当前目录下，需要用-I指出头文件地址。（纯粹个人阶段性的理解，还希望大牛能指正）
+
+=================================================================================
+吐槽完毕，下面是经验分享：
+
+一、gcc编译的流程
+
+gcc的编译流程分为4步：（详见：http://xredman.iteye.com/blog/700901）
+
+预处理(Pre-Processing) －> 编译(Compling) -> 汇编(Assembling) -> 连接(Linking) 
+
+    预处理：处理#include、#define、#ifdef 等宏命令
+    编译：把预处理完的文件编译为汇编程序.s
+    汇编：把汇编程序.s编译为.o二进制文件
+    链接：把多个二进制文件.o集合（链接）成一个可执行文件
+
+由此可见，
+
+    多头文件.h时，在预处理阶段处理，指明头文件所在地址，但通常在makefile中是一个命令完成到第3步，生成.o
+    多源文件.c时，在链接阶段处理，gcc命令要写出所有源文件，不然会出现引用了却未定义的函数\变量等
+
+二、多文件，多头文件时的gcc经验分享
+
+情况1、一步直接由.c生成执行文件
+
+[objc] view plain copy
+
+    gcc [-I包含文件.h的目录1 -I包含文件.h的目录2...] 源文件1.c [源文件2.c 源文件3.c...] -o 执行文件名  
+
+情况2、先编译成.o，再由.o链接为执行文件(makefile中常见，因为在大型项目时，可以实现重编译部分文件而不需要每次都全部编译源文件文件)
+[objc] view plain copy
+
+    a、gcc [-I源文件1包含的文件.h的目录] 源文件1.c [-o 源文件1.o]  
+       //可以通过-o指定生成的二进制文件地址和位置  
+       gcc [-I源文件2包含的文件.h的目录] 源文件2.c [-o 源文件2.o]   
+       ....  
+    b、gcc     源文件1.o    源文件2.o   ......   -o  生成的执行文件（默认为a.out）  
+
+
+三、多文件，多头文件时的makefile经验分享
+
+以例子说明最好理解，文件结构如下图：
+
+[objc] view plain copy
+
+    [user@13:06 src]$tree  
+    .  
+    ├── common  
+    │   ├── abc.c  
+    │   ├── abc.h  
+    │   └── test  
+    │       ├── test.c  
+    │       └── test.h  
+    ├── Makefile  
+    └── myhello.c  
+      
+    2 directories, 6 files  
+    [user@13:06 src]$  
+
+（以下为源文件+头文件的展示，没兴趣的可以跳过此部分，不影响整体理解）
+<myhello.c>：
+
+[objc] view plain copy
+
+    [user@13:08 src]$cat myhello.c   
+    #include <stdio.h>  
+    #include "test.h"  
+    #include "abc.h"  
+      
+    void printhelloworld(void);  
+      
+    int main()  
+    {  
+        abc();  
+        printtest();  
+        printf("\n");  
+        printhelloworld();  
+        return 0;  
+    }  
+      
+      
+    void printhelloworld(void){  
+        printf("hello world\n");  
+    }  
+    [user@13:08 src]$  
+
+<abc.c && abc.h>
+[objc] view plain copy
+
+    [user@13:10 src]$cat ./common/abc.c  
+    #include "abc.h"  
+      
+    void abc(void)  
+    {  
+        printf("\nit is in funciton abc");  
+    }  
+    [user@13:10 src]$cat ./common/abc.h  
+    #include <stdio.h>  
+    void abc(void);  
+    [user@13:11 src]$  
+
+<test.c && test.h>
+[objc] view plain copy
+
+    [user@13:11 src]$cat ./common/test/test.c  
+    #include <stdio.h>  
+      
+    void printtest(void)  
+    {  
+        printf("\nit is in test.c");  
+    }  
+    [user@13:11 src]$cat ./common/test/test.h  
+    void printtest(void);  
+    [user@13:11 src]$  
+
+（代码展示到此结束）
+简单来说，在myhello.c的main中，需要调用./common/abc.c的abc函数和./common/test.c的printtest函数,因而包含了他们的头文件abc.h  test.h
+
+重点来了，makefile可以怎么写（只是我的写法的参考）
+
+[objc] view plain copy
+
+    [user@13:11 src]$cat Makefile   
+    //目标（要生成的文件名）  
+    TARGET     := myhello  
+    //编译器的选择（在Linux中其实可以忽略，因为cc指向的本来就是gcc）     
+    CC     := gcc    
+    //编译的参数  
+    CFLAG      := -Wall    
+    //编译包含的头文件所在目录   
+    INCLUDES   := -I. -Icommon/ -Icommon/test    
+     //所有用到的源文件，注意：非当前目录的要+上详细地址  
+    SRCS    = myhello.c ./common/abc.c ./common/test/test.c   
+    //把源文件SRCS字符串的后缀.c改为.o   
+    OBJS    = $(SRCS:.c=.o)    
+    //匹配所有的伪目标依赖，即执行目标myhello.o & ./common/abc.c & ./common/test/test.c   
+    .PHONY:all //all为伪目标all:$(OBJS)   
+        //当所有依赖目标都存在后，链接，即链接myhello.o & ./common/abc.c & ./commontest/test.c  
+        $(CC) $(LDFLAG) -o $(TARGET) $^  
+    //重定义隐藏规则，匹配上述目标：myhello.o & ./common/abc.c & ./common/test/test.c  
+    %.o:%.c   
+        //生成.o文件，注意，由于SRCS有个别包含详细地址的，生成的.o文件也是详细地址  
+        $(CC) -c $(INCLUDES) $(CFLAG) $(CPPFLAG) $< -o $@  
+    //清空除源文件外的所有生成文件   
+    clean:     rm -rf $(basename $(TARGET)) $(SRCS:.c=.o)[user@13:14 src]$  
+
+make执行下，结果怎么样呢：
+[objc] view plain copy
+
+    [user@13:35 src]$make  
+    //编译了myhello.c，自动处理了头文件abc.h test.h的包含关系  
+    gcc -c -I. -Icommon/ -Icommon/test -Wall  myhello.c -o myhello.o gcc -c -I. -Icommon/ -Icommon/test -Wall  common/abc.c -o common/abc.o gcc -c -I. -Icommon/ -Icommon/test -Wall  common/test/test.c -o common/test/test.o   
+    //把生成的所有.o文件链接为执行文件，如果有缺失，会提示函数/变量未定义  
+    gcc  -o myhello  myhello.o common/abc.o common/test/test.o[user@13:35 src]$  
+
+说明：由于当前博文编写代码是在Objective-C上，因此为了观看方便而用注释//，实际在makefile中注释为#
+
+此时的文件结构：
+[objc] view plain copy
+
+    [user@13:43 src]$tree  
+    .  
+    ├── common  
+    │   ├── abc.c  
+    │   ├── abc.h  
+    │   ├── abc.o  
+    │   └── test  
+    │       ├── test.c  
+    │       ├── test.h  
+    │       └── test.o  
+    ├── Makefile  
+    ├── myhello  
+    ├── myhello.c  
+    └── myhello.o  
+      
+    2 directories, 10 files  
+    [user@13:43 src]$  
+
+不知道注意到了没，我通过-o指定地址，把生成的.o与源文件.c放在一起的，例如abc.o放在了abc.c的目录，但同时的，链接时也需要给出详细地址。
+
+
+结论：
+
+在gcc时，会自动解决头文件.h的依赖关系，只需要指明头文件的地址
+
+在gcc链接时，才需要把所有的源文件.o列出了，否则出现引用了未定义的变量/函数
