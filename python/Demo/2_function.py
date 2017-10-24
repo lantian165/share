@@ -160,13 +160,37 @@ def calc(*numbers):
     sum = 0
     for i in numbers:
         sum = sum + i
-    print 'sum =' , sum
+    return sum
 
-print '定义了可变参数后函数的'
-calc(1,2,3)
+print '定义了可变参数后函数的效果'
+print 'calc(1,2,3) =',  calc(1,2,3)
+print 'calc(1,2,3,4,5,6) =', calc(1,2,3,4,5,6)
+
+print "\n--------- 关键字参数 以 dict 字典传参-----------"
+def person(name, age, **kw):
+    print 'name:', name, 'age:', age, 'other:', kw
+
+person('韩雪','28')
+person('韩雪','29',city='BeiJing')
+person('韩雪','30',city='BeiJing',job='Singer')
+
+# dict:  d={key:value,key1:value1}      字典
+# list:  l=[value1,value2,value3, ...]  列表 可修改内容
+# tuple: t=(value1, value2)            元组 不可修改内容
+
+print "\n--------- 组合参数 -----------"
+print '请注意参数组合的顺序必须是：必选参数，默认参数，列表参数，字典参数 '
+# 数，*args表示用 list 传参， **kw表示用字典传参
+# *args是可变参数，args接收的是一个tuple
+# **kw是关键字参数，kw接收的是一个dict
+def func(a,b,c=0,*args, **kw):
+    print 'a=', a, 'b=', b, 'c=', c, 'args=', args, 'kw=', kw
+
+func(1,2)
+func(1,2,3)
+func(1,2,3,'a','b','c')
+func(1,2,3,'a','b','c',x='shanghai', y='chongqing')
 
 print "\n--------- Part 4 递归函数 -----------"
-
-
 
 
