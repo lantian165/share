@@ -145,6 +145,8 @@ print '\n增加了锁之后\nAfter t3.join, t4.join, Blance=%d' % blance
 # 如果同时存在多个锁, 线程之间互相等待对方释放锁时, 就有可能造成死锁, 导致所
 # 有线程都挂起. 既不能执行, 也无法终止, 只能由操作系统强行终止.
 
+# 测试python多进程对cpu内核资源的占用情况, 是死循环, 除了测试, 平时注释掉
+'''
 import threading, multiprocessing
 def loop_test():
     x = 0
@@ -155,6 +157,8 @@ for i in range(multiprocessing.cpu_count()):
     t = threading.Thread(target=loop_test)
     t.start()
     t.join()
+'''
+
 
 # 使用C , C++, JAVA来写相同的代码, 可以把全部的核心跑满, 但是python就是不行
 # 原因:
@@ -167,3 +171,41 @@ Python 解释器在执行代码时, 有一个GIL锁: Global Interpreter Lock,
 如果一定要让多线程用到多核, 只能通过C扩展来实现.
 也可以通过多进程实现多核任务. 多个Python进程各自有独立的GIL锁, 互不影响.
 '''
+
+print '\n\n--------------------------------- Part 3: ThreadLocal ---------------------------------------'
+
+print '\n开始验证线程间传递全局数据的方法: thread.local(), 可避免重复地传递参数'
+# 创建全局ThreadLocal对象
+local_school = threading.local()
+
+def process_student():
+    print 'Hello, %s age: %s (in %s)' %(local_school.student, local_school.age, threading.current_thread().name)
+
+def process_thread(name, age):
+    # 绑定ThreadLocal的student
+
+    # 自定义属性 name
+    local_school.student = name
+    # 自定义属性 age
+    local_school.age = age
+    process_student()
+
+t1 = threading.Thread(target=process_thread, name='Thread-A', args=('Alice', '27',))
+t2 = threading.Thread(target = process_thread, args = ('Job','31',), name='Thread-B')
+
+t1.start()
+t2.start()
+
+t1.join()
+t2.join()
+
+# 全局变量local_school就是一个ThreadLocal对象, 每个Thread对它都可以读写student属性, 但互不影响
+# 可以简单的把local_school理解为一个dict类型的全局变量, 但每个属性如 local_school.student都是线程的局部变量,
+# 可以由线程任意读写而互不干扰, 也不用管理锁的问题
+
+# ThreadLocal最常用的地方就是为每个线程绑定一个数据库连接, HTTP请求, 用户身份信息等
+# 这样一个线程所调用到的函数都可以很方便地使用这些资源
+
+
+
+
