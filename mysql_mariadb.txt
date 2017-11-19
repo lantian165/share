@@ -1,0 +1,25 @@
+从最新版本的Linux系统开始，默认的是 Mariadb而不是MySQL！
+使用系统自带的repos安装很简单：
+yum install mariadb mariadb-server
+
+systemctl start mariadb ==> 启动mariadb
+systemctl enable mariadb ==> 开机自启动
+mysql_secure_installation ==> 设置 root密码等相关
+mysql -uroot -p123456 ==> 测试登录！
+
+[client]
+port                           = 3306
+socket                         = /data/mysql/mysql.sock
+
+[mysqld]
+port                           = 3306
+socket                         = /data/mysql/mysql.sock
+basedir                        = /data/mysql
+datadir                        = /data/mysql/data
+tmpdir                         = /data/mysql/data
+
+安装phpMyAdmin:
+phpmyadmin版本要选择: 4.4.15.8, 
+phpmyadmin版本如果选高了, 会提示os的php版本是5.4太低
+如果版本选低了, 会导致phpmyadmin配置好了之后,登陆无法成功,原因无法查询
+
