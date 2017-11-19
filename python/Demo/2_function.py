@@ -1,5 +1,5 @@
-#/usr/bin/env python
-#-*- coding: utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 
 print "\n--------- Part 1 调用函数 -----------"
