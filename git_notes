@@ -34,3 +34,39 @@
      git checkout -- file
 
 #http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/0013744142037508cf42e51debf49668810645e02887691000
+
+常用命令:
+
+1.拉取版本:
+git clone https://github.com/lantian165/share.git local_code_dir_name
+
+2.提交代码:
+git add *
+git commit -m "add your comment here"
+git push origin HEAD:master (input git user name and psw)
+
+3.如何查有有哪些远程分支:
+ git remote -v
+
+4.从远程origin仓库 获取 master分支到本地 origin 仓库当前分支:
+git fetch origin master
+
+4.1 从远程获取最新版本(origin仓库, master分支)到本地(当前仓库,新建temp分支) (保险的方案)
+git fetch origin master:temp
+
+4.2 比较本地的仓库和远程参考的区别(比较当前分支和temp分支的区别)
+git diff temp
+
+4.3 合并temp分支到当前分支
+git merge temp
+
+5.把远程下载下来的代码合并到本地仓库，远程的和本地的合并:
+git merge origin/master
+
+
+
+
+
+
+
+
