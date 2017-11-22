@@ -23,3 +23,13 @@ phpmyadmin版本要选择: 4.4.15.8,
 phpmyadmin版本如果选高了, 会提示os的php版本是5.4太低
 如果版本选低了, 会导致phpmyadmin配置好了之后,登陆无法成功,原因无法查询
 
+更改mariadb root密码：
+systemctl stop mariadb
+systemctl start mariadb
+mysql -uroot
+update mysql.user set password=PASSWORD('123456') where User='root';
+flush privileges;
+exit
+systemctl stop mariadb
+systemctl start mariadb
+mysql -uroot -p
