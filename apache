@@ -1,0 +1,11 @@
+# 启动apache服务器
+systemctl start httpd
+
+# 443端口被占用导致apache启动失败，
+通过命令：netstat -anp |grep 443找到占用443端口的进程
+解除该进程对443端口的占用
+
+# DocumentRoot "/var/www/html"
+vi /etc/httpd/conf
+Find: DocumentRoot "/var/www/html"
+

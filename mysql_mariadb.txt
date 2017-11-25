@@ -33,3 +33,66 @@ exit
 systemctl stop mariadb
 systemctl start mariadb
 mysql -uroot -p
+
+# 查看当前字符编码设置
+show variables like '%char%';
+
+# Edit /etc/my.cnf
+# add by baochen for Chinese support 
+# under: [mysqld]
+character-set-server=utf8
+init_connect='SET collation_connection=utf8-unicode_ci'
+init_connect='SET NAMES  utf8'
+collation-server=utf8_unicode_ci
+skip-character-set-client-handshake
+
+# Under: [client]
+default-character-set = utf8
+
+# 简单的SQL测试
+-- 查看MySQL的状态  
+status;  
+
+-- 显示支持的引擎  
+show engines;  
+
+-- 显示所有数据库  
+show databases;  
+
+-- 切换数据库上下文,即设置当前会话的默认数据库  
+use test;  
+
+-- 显示本数据库所有的表  
+show tables;  
+
+-- 创建一个表  
+CREATE TABLE t_test (  
+  id int(11) UNSIGNED NOT NULL AUTO_INCREMENT,  
+  userId char(36),  
+  lastLoginTime timestamp,  
+  PRIMARY KEY (id)  
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;  
+  
+-- 插入测试数据  
+insert into t_test(userId)  
+    values  
+('admin')  
+,('haha')  
+;  
+  
+# 如何执行sql脚本
+# 方法1：
+# mysql -h localhost -u root -p123456 ./create_tbl.sql
+
+＃方法2：
+# mysql> source ./create_tbl.sql
+
+-- 简单查询  
+select * from t_test;  
+select id,userId from t_test  where userId='admin' ;  
+
+# 安装MySQL驱动
+sudo easy_install mysql-connector-python
+sudo easy_install MySQL-python
+
+
