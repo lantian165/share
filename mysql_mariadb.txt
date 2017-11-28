@@ -95,4 +95,5 @@ select id,userId from t_test  where userId='admin' ;
 sudo easy_install mysql-connector-python
 sudo easy_install MySQL-python
 
-
+# 查看软件相关文件的安装路径
+rpm -ql phpMyAdmin-4.4.15.10-2.el7.noarch
