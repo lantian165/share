@@ -1,0 +1,57 @@
+////////////////////////////////////////////////////////////////////////////////
+1. with解析 __enter__()、__exit__()
+用法解析:
+__enter__():在使用with语句时调用，会话管理器在代码块开始前调用，返回值与as后的参数绑定
+__exit__():会话管理器在代码块执行完成好后调用，在with语句完成时，对象销毁之前调用
+
+举例:
+class _ConnectionCtx(object):
+    def __enter__(self):
+        global _db_ctx
+        self.should_cleanup = False
+        if not _db_ctx.is_init():
+            _db_ctx.init()
+            self.should_cleanup = True
+        return self
+
+    def __exit__(self, exctype, excvalue, traceback):
+        global _db_ctx
+        if self.should_cleanup:
+            _db_ctx.cleanup()
+
+def connection():
+    return _ConnectionCtx()
+
+说明:
+定义了__enter__()和__exit__()的对象可以用于with语句，确保任何情况下__exit__()方法可以被调用。
+
+把_ConnectionCtx的作用域作用到一个函数调用上，可以这么写：
+with connection():
+    do_some_db_operation()
+
+但是更简单的写法是写个@decorator：
+@with_connection
+def do_some_db_operation():
+    pass
+
+////////////////////////////////////////////////////////////////////////////////
+2. import threading, 在线程中使用的全局变量, 但每个实例的属性却是线程各自私有的
+
+# 创建全局ThreadLocal对象:
+local_school = threading.local()
+
+你可以把local_school看成全局变量，但每个属性如local_school.student都是线程的局部变量，
+可以任意读写而互不干扰，也不用管理锁的问题，ThreadLocal内部会处理。
+
+
+////////////////////////////////////////////////////////////////////////////////
+3.
+
+////////////////////////////////////////////////////////////////////////////////
+4.
+
+////////////////////////////////////////////////////////////////////////////////
+5.
+
+////////////////////////////////////////////////////////////////////////////////
+6.
