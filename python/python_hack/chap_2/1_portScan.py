@@ -16,11 +16,11 @@ def connScan(tgtHost, tgtPort):
         connSkt.send ('ViolentPython\r\n')
         result = connSkt.recv(100)
         screenLock.acquire()
-        print '[+]%d/tcp open' , tgtPort
+        print '[+]%d/tcp open'  %tgtPort
         print '[+] Banner: ' + str(result)
     except:
         screenLock.acquire()
-        print '[-]%d/tcp closed', tgtPort
+        print '[-]%d/tcp closed' %tgtPort
     finally:
         screenLock.release()
         connSkt.close()
@@ -34,9 +34,10 @@ def portScan(tgtHost, tgtPorts):
 
     try:
         tgtName = socket.gethostbyaddr(tgtIP)
-        print '\n[+] Scan results for:' + tgtName[0]
+        print '\n[+] Scan results for: ' + tgtName[0]
     except:
-        print "\n[+] Scan results for:" + tgtIP
+        print "\n[+] Scan results for: " + tgtIP
+        reutrn
 
     socket.setdefaulttimeout(1)
 

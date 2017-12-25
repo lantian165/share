@@ -151,20 +151,141 @@ You should see the text:
 Hello, baochen. Your's at the polls index.
 
 
+### 2017-12-23 ###
+# Reading python hack, want to run the command with web -> nginx -> Django -> python
 
+[lanbaby@lanbaby mysite]$ python manage.py runserver
+  File "/usr/lib64/python2.7/site-packages/django/conf/__init__.py", line 137, in __init__
+    raise ValueError("Incorrect timezone setting: %s" % self.TIME_ZONE)
+ValueError: Incorrect timezone setting: CST
 
+Solution:
+Edit mysite/setting.py, update TIME_ZONE from 'CST' to 'Asia/Shanghai' 
 
+If use mysql for the django database, edit mysite/setting.py:
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'mysites',
+        'USER': 'root',
+        'PASSWORD': '123456',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+    }
+}
 
+Run the command to create the least table to the database:
+python manage.py migrate
 
+Result:
 
+MariaDB [mysites]> show tables;
++----------------------------+
+| Tables_in_mysites          |
++----------------------------+
+| auth_group                 |
+| auth_group_permissions     |
+| auth_permission            |
+| auth_user                  |
+| auth_user_groups           |
+| auth_user_user_permissions |
+| django_admin_log           |
+| django_content_type        |
+| django_migrations          |
+| django_session             |
+| t_mysite_user              |
++----------------------------+
+11 rows in set (0.00 sec)
 
+MariaDB [mysites]> 
 
+Edit polls/models.py, Add class Question and Choice.
 
+run:
+python manage.py makemigrations polls ( make sql )
+python manage.py sqlmigrate polls 0001 ( check what sql made )
+python manage.py migrate               ( create those model tables in database )
 
+Warning:
+ (mysql.W002) MySQL Strict Mode is not set for database connection 'default'
 
+Solution:
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'mysites',
+        'USER': 'root',
+        'PASSWORD': '123456',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'OPTIONS':{
+            'init_command':"SET sql_mode='STRICT_TRANS_TABLES'",
+        },
+    }
 
+Remember the three-step guide to making model changes:
+1. Change your models(in models.py)
+2. Run python manage.py makemigrations to create migrations for those changes
+3. Run python manage.py migrate to apply those changes to the database.
 
+Playing with the API:
+$ python manage.py shell
+>>>from polls.models import Question, Choice
+# No questions are in the system yet.
+>>> Question.objects.all()
+<QuerySet []>
+>>> from django.utils import timezone
+>>> q = Question(question_text="What's new?", pub_date=timezone.now())
+>>> q.save() # save to the database
+>>> q.id
+>>> q.question_text
+>>> q.pub_date
+# Change values by changing the attributes, then calling save().
+>>> q.question_text = "What's up?"
+>>> q.save()
 
+The time write to the database is American Time.
+How to change to Asia/Shanghai Time?
+
+Solution:
+TIME_ZONE = 'Asia/Shanghai' #'UTC'
+USE_TZ = False #True
+
+>>> Question.objects.filter(id=1)
+>>> Question.objects.filter(question_text__startswith='What')
+>>> current_year = timezone.now().year
+>>> Question.objects.get(pub_date__year=current_year)
+# Lookup by a primary key is the most common case, so Django provides a
+# shortcut for primary-key exact lookups.
+# The following is identical to Question.objects.get(id=1).
+>>> Question.objects.get(pk=1)
+# Make sure our custom method worked.
+>>> q.was_published_recently()
+
+>>> q = Question.objects.get(pk=1)
+>>> q.choice_set.all()
+# Create three choices.
+>>> q.choice_set.create(choice_text='Not much', votes=0)
+<Choice: Not much>
+>>> q.choice_set.create(choice_text='The sky', votes=0)
+<Choice: The sky>
+>>> c = q.choice_set.create(choice_text='Just hacking again', votes=0)
+
+# Choice objects have API access to their related Question objects.
+>>> c.question
+<Question: What's up?>
+# And vice versa: Question objects get access to Choice objects.
+>>> q.choice_set.all()
+<QuerySet [<Choice: Not much>, <Choice: The sky>, <Choice: Just hacking again>]>
+>>> q.choice_set.count()
+3
+>>> Choice.objects.filter(question__pub_date__year=current_year)
+# Let's delete one of the choices. Use delete() for that.
+>>> c = q.choice_set.filter(choice_text__startswith='Just hacking')
+>>> c.delete()
+
+Introducing the Django Admin
+# url: https://docs.djangoproject.com/en/1.11/intro/tutorial02/
 
 
 
