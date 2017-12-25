@@ -1,3 +1,6 @@
+## C program memory arrange (C程序内存分布)
+#http://www.cnblogs.com/dejavu/archive/2012/08/13/2627498.html
+#
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>

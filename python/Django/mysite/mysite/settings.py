@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ['127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
+    'polls.apps.PollsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -88,6 +89,9 @@ DATABASES = {
         'PASSWORD': '123456',
         'HOST': '127.0.0.1',
         'PORT': '3306',
+        'OPTIONS':{
+            'init_command':"SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 
@@ -123,7 +127,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False #True
 
 
 # Static files (CSS, JavaScript, Images)
