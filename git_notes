@@ -63,8 +63,18 @@ git merge temp
 5.把远程下载下来的代码合并到本地仓库，远程的和本地的合并:
 git merge origin/master
 
+6.本地已编辑, 但还不想commit,远程代码也有更新, 想先备份本地编辑的内容,把远程版本下载下来
+之后再从栈中恢复本地数据
+git stash # 备份当前的工作区的内容，从最近的一次提交中读取相关内容，让工作区保证和上次提交的内容一致。
+            同时，将当前的工作区内容保存到Git栈中。
+git pull
+git stash pop    # 从Git栈中读取最近一次保存的内容，恢复工作区的相关内容。
+git stash clear  # 清空Git栈
+git stash list # 显示Git栈内的所有备份，可以利用这个列表来决定从那个地方恢复。
 
-
+6.1 另外一种方案, 放弃本地修改, 直接拿远程的过来覆盖
+git reset --hard
+git pull
 
 
 
