@@ -97,3 +97,14 @@ sudo easy_install MySQL-python
 
 # 查看软件相关文件的安装路径
 rpm -ql phpMyAdmin-4.4.15.10-2.el7.noarch
+
+# 设置远程用户登陆mysql
+假设数据库为: mysites, 创建一个名为: django的用户来访问该数据库
+MariaDB [mysql]> insert into mysql.user(Host,User,Password) values ("%","django",password("123456"));
+MariaDB [mysql]> grant all on mysites.* to django@"%" identified by '123456';
+MariaDB [mysql]> grant select,delete,update,create,drop,alter,insert,index on mysites.* to django@"%" identified by '123456';
+MariaDB [mysql]> flush privileges;
+
+远程访问方式:
+ip a 查看mysql服务器IP
+mysql -h 10.100.1.94 -P 3306 -u django -p
