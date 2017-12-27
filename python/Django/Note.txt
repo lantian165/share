@@ -260,9 +260,8 @@ USE_TZ = False #True
 # The following is identical to Question.objects.get(id=1).
 >>> Question.objects.get(pk=1)
 # Make sure our custom method worked.
->>> q.was_published_recently()
-
 >>> q = Question.objects.get(pk=1)
+>>> q.was_published_recently()
 >>> q.choice_set.all()
 # Create three choices.
 >>> q.choice_set.create(choice_text='Not much', votes=0)
@@ -287,8 +286,30 @@ USE_TZ = False #True
 Introducing the Django Admin
 # url: https://docs.djangoproject.com/en/1.11/intro/tutorial02/
 
+$ python manage.py createsuperuser ( admin user name: lan)
 
+$ python manage.py runserver
 
+Make the poll app modifiable in the admin
+
+Just one thing to do: we need to tell the admin that Question objects have an admin interface.
+To do this, open the polls/admin.py file, and edit it to look like this:
+
+polls/admin.py:
+from django.contrib import admin
+from .models import Question
+admin.site.register(Question)
+
+Visit: 127.0.0.1:8000/admin, Login with user: lan
+
+Writing more views:
+edit polls/views.py to define functions to process more urls
+edit polls/urls.py to map urls to functions in views.py
+
+(the parameter defined in urls.py should be the same defined in views.py)
+
+Write views that actually do something:
+https://docs.djangoproject.com/en/1.11/intro/tutorial03/
 
 
 
