@@ -311,6 +311,24 @@ edit polls/urls.py to map urls to functions in views.py
 Write views that actually do something:
 https://docs.djangoproject.com/en/1.11/intro/tutorial03/
 
+Writing your first Django app, part 3
+Overview
+Writing more views
+Write views that actually do something
+A shortcut: render()
+Raising a 404 error
+A shortcut: get_object_or_404()
+Use the template system
+Removing hardcoded URLs in templates
+Namespacing URL names
+
+https://docs.djangoproject.com/en/2.0/intro/tutorial04/:
+Writing your first Django app, part 4
+Write a simple form
+Use generic views: Less code is better
+Amend URLconf
+Amend views
+
 
 
 

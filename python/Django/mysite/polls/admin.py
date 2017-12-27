@@ -5,5 +5,7 @@ from django.contrib import admin
 
 # Register your models here.
 from .models import Question
+
+# admin password: admin123
 admin.site.register(Question)
 

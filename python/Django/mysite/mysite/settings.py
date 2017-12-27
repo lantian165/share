@@ -25,7 +25,8 @@ SECRET_KEY = '_rf-&0irk*e50m5+@qep2@1ut6pdje3gr)0cs2fw_d$qp2mwv$'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1']
+#ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -86,8 +87,10 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'mysites',
         'USER': 'django',
+        # 'USER': 'root',
         'PASSWORD': '123456',
-        'HOST': '10.100.1.94',
+        'HOST': '10.100.0.193',
+        # 'HOST': '127.0.0.1',
         'PORT': '3306',
         'OPTIONS':{
             'init_command':"SET sql_mode='STRICT_TRANS_TABLES'",
