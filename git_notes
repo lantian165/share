@@ -77,6 +77,12 @@ git reset --hard
 git pull
 
 
-
+7. 在远程git服务器上新增一个仓库
+echo "# lihongyi" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin https://github.com/lantian165/lihongyi.git
+git push -u origin master
 
 
